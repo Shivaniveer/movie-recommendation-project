@@ -1,0 +1,120 @@
+const menuToggle = document.querySelector('.menu-toggle');
+const sidebar = document.querySelector('.sidebar');
+const logo = document.querySelector('.logo-text');
+const userPhoto = document.querySelector('.user-image');
+const userData = document.querySelector('.user-data');
+const logoutButton = document.querySelector('.user-image');
+const banklogo = document.querySelector('.bank-logo-container');
+const bankLogoLink = banklogo.querySelector('a');
+const mainLinks = document.querySelectorAll('.links-list > li > a');
+const main = document.querySelector('main');
+const linkItems = document.querySelectorAll('[class*="-link"]');
+// Function to handle sidebar toggle
+function toggleSidebar() {
+    bankLogoLink.classList.toggle('hideElement');
+    const isSidebarClosed = sidebar.classList.toggle('close');
+    if (isSidebarClosed) {
+        sidebar.classList.add('closing');
+    } else {
+        // Optionally, you can remove the 'closing' class when the sidebar is opened again
+        sidebar.classList.remove('closing');
+    }
+
+    menuToggle.classList.toggle('rotate');
+    logo.classList.toggle('hideElement');
+    main.classList.toggle('mainopen');
+
+    // Hide or show text, dropdown icon, and sublinks based on sidebar state
+    mainLinks.forEach(link => {
+        const sublinks = link.nextElementSibling;
+        const dropdownIcon = link.querySelector('.dropdown-icon');
+
+        if (isSidebarClosed) {
+            link.querySelector('span').classList.add('hideElement');
+            try {
+                sublinks.classList.add('hideElement');
+                dropdownIcon.classList.add('hideElement'); // Hide dropdown icon
+            } catch {};
+        } else {
+            link.querySelector('span').classList.remove('hideElement');
+            try {
+                sublinks.classList.add('hideElement'); // Hide sublinks when sidebar closes
+                dropdownIcon.classList.remove('hideElement'); // Show dropdown icon
+                dropdownIcon.style.transform = 'rotate(-90deg)';
+            } catch {};
+        }
+    });
+    setTimeout(() => {
+        sidebar.classList.remove('closing');
+    }, 800);
+}
+
+window.onload = function() {
+    const sidebar = document.querySelector('.sidebar');
+    setTimeout(() => {
+        sidebar.classList.remove('closing');
+    }, 800);
+
+};
+
+
+
+
+// Handle sidebar toggle on menu button click
+menuToggle.addEventListener('click', toggleSidebar);
+
+// Handle sidebar toggle on any -links item click
+// Handle sidebar toggle on any -links item click only if sidebar is closed
+linkItems.forEach(item => {
+    item.addEventListener('click', () => {
+        if (sidebar.classList.contains('close')) {
+            toggleSidebar();
+            const sublinks = item.querySelector('.sublinks-list'); // Update with the correct class name for the sublinks
+            const dropdownIcon = item.querySelector('.dropdown-icon');
+            const isSublinksVisible = sublinks.classList.toggle('hideElement');
+            dropdownIcon.style.transform = isSublinksVisible ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+
+    });
+});
+
+// Handle main link clicks
+mainLinks.forEach(link => {
+    link.addEventListener('click', (event) => {
+
+        const sublinks = link.nextElementSibling; // Get the sublinks ul element
+        if  (sublinks){
+        event.preventDefault(); // Prevent the default link action
+        const dropdownIcon = link.querySelector('.dropdown-icon'); // Get the dropdown icon
+
+        // Check if the sidebar is open before toggling sublinks
+        if (!sidebar.classList.contains('close')) {
+            // Hide all other sublinks and reset icons
+            mainLinks.forEach(otherLink => {
+                if (otherLink !== link) {
+                    try {
+                    otherLink.nextElementSibling.classList.add('hideElement');
+                    otherLink.querySelector('.dropdown-icon').style.transform = 'rotate(-90deg)';
+                    }catch{};
+                }
+            });
+
+            // Toggle the current sublinks and icon
+            const isSublinksVisible = sublinks.classList.toggle('hideElement');
+            dropdownIcon.style.transform = isSublinksVisible ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+
+        }
+    });
+});
+
+// Initial setup to hide sublinks and dropdown icons if sidebar is collapsed
+if (sidebar.classList.contains('close')) {
+    mainLinks.forEach(link => {
+        try{
+        link.querySelector('span').classList.add('hideElement');
+        link.nextElementSibling.classList.add('hideElement');
+        link.querySelector('.dropdown-icon').classList.add('hideElement'); // Hide dropdown icon initially
+        }catch{};
+    });
+}

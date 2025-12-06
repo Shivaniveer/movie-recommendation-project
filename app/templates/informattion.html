@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Movie Recommendation System - Technologies Used{% endblock %}
+
+{% block content %}
+<div class="Pagecontent" id="PagecontentID">
+    <div id="Pagebox" class="content box">
+        <div class="container" id="container">
+        <h1 class="fade-in">🎬 Movie Recommendation System</h1>
+        <p class="fade-in delay-1">Explore the core technologies behind our intelligent recommendation engine.</p>
+
+        <div class="tech-cards">
+            <div class="card">
+                <h2>🔢 Cosine Similarity</h2>
+                <p>Measures the similarity between movies based on vector space modeling.</p>
+            </div>
+
+            <div class="card">
+                <h2>📚 Pandas</h2>
+                <p>Used for data processing, handling large datasets efficiently.</p>
+            </div>
+
+            <div class="card">
+                <h2>📊 Scikit-Learn</h2>
+                <p>Provides machine learning tools, including vectorization and similarity measures.</p>
+            </div>
+
+            <div class="card">
+                <h2>🔍 TF-IDF Vectorization</h2>
+                <p>Converts text-based movie descriptions into numerical feature vectors.</p>
+            </div>
+
+            <div class="card">
+                <h2>🎭 NLP (Natural Language Processing)</h2>
+                <p>Used for analyzing movie descriptions, tags, and reviews.</p>
+            </div>
+
+            <div class="card">
+                <h2>🌟 K-Nearest Neighbors (KNN)</h2>
+                <p>Finds similar movies based on user preferences.</p>
+            </div>
+
+            <div class="card">
+                <h2>🧠 Deep Learning (TensorFlow/PyTorch)</h2>
+                <p>Enhances recommendations by learning user behavior patterns.</p>
+            </div>
+
+            <div class="card">
+                <h2>🛠 Flask API</h2>
+                <p>Used to build the backend, handling requests and responses efficiently.</p>
+            </div>
+
+            <div class="card">
+                <h2>🌐 Web Scraping (BeautifulSoup)</h2>
+                <p>Extracts real-time movie data and ratings from websites.</p>
+            </div>
+        </div>
+    </div>
+    </div></div>
+    <style>
+        /* General Styling */
+
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ff4757;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color:black;
+        }
+
+        /* Cards */
+        .tech-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 10px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ff4757;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .delay-1 {
+            animation-delay: 0.5s;
+        }
+
+    </style>
+{% endblock %}

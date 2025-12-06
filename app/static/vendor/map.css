@@ -1,0 +1,45 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #141414;
+    color: white;
+    text-align: center;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+button {
+    background-color: #e50914;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.movies-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.movie-card {
+    background-color: #222;
+    padding: 10px;
+    border-radius: 10px;
+    width: 200px;
+}
+
+.movie-card img {
+    width: 100%;
+    border-radius: 10px;
+}

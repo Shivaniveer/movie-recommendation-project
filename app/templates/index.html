@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./chatbot-ui.css">
+    <title>Zappy: The Maximus Infoware Chatbot</title>
+    <link rel="icon" type="image/x-icon" href="imgs/favicon.png">
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-image: url("imgs/maximus_logo.png");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #e5e5e5;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+        }
+        
+        section {
+            max-width: 1100px;
+            margin: auto;
+            text-align: center;
+            padding: 0 1rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        p {
+            font-size: 2rem;
+        }
+        
+        #just-line-break{
+            white-space: pre-line;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!---------
+    <section>
+        <h1>Maximus Infoware</h1>
+        <p>Assuring Payments Ensuring Securities</p>
+    </section>
+<iframe title="MIS" width="600" height="373.5" src="https://app.powerbi.com/view?r=eyJrIjoiZjA3OTI5MzctYmJjMC00OTAzLWI4NDItNGM0NTZjMTY3YTUyIiwidCI6ImUzZTY1YTY3LTA3MTgtNDM4MS04ZTY2LWU5NjliMTJjOWRiYSJ9&pageName=ReportSection22b260622b7541e93085" frameborder="0" allowFullScreen="true"></iframe>
+--------> 
+
+<!---------------- 'http://localhost:8080/' 'http://localhost:5005/webhooks/rest/webhook'-->
+
+    <div id="chat-container"></div>
+    <script src="./chatbot-ui.js"></script>
+    <script>
+        createChatBot(host = 'http://localhost:5005/webhooks/rest/webhook', botLogo = "./imgs/bot-logo.png",
+            title = "ZAPPY", welcomeMessage = "Hi 👋 I am Zappy!" , inactiveMsg = "Sorry, I am unable to answer your question.", theme = "purple")
+    </script>
+window.onload = populateDropdown;
+</body>
+
+</html>

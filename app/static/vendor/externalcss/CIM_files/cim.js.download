@@ -1,0 +1,820 @@
+
+function initiateCall(cust, tranDetails, case_id) {
+    const callButton = document.getElementById("callButton");
+    callButton.disabled = true; // Disable the button to prevent multiple clicks
+    callButton.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Initiating...";
+
+    const customerNumber = cust; // Customer phone number
+    const transactionDetails = JSON.stringify(tranDetails); // Convert transaction details to JSON string
+
+    // Make an HTTP GET request to the Flask endpoint to initiate the call
+    fetch(`/call_customer?customer_number=${encodeURIComponent(customerNumber)}&transaction_details=${encodeURIComponent(transactionDetails)}&case_id=${encodeURIComponent(case_id)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.call_sid) {
+                console.log("Call initiated:", data);
+                callButton.innerHTML = "<i class='fas fa-phone'></i> Ringing...";
+                // Poll the call status periodically
+                pollCallStatus(data.call_sid,data.case_id, callButton);
+            } else {
+                throw new Error("Call initiation failed");
+            }
+        })
+        .catch(error => {
+            console.error("Error initiating call:", error);
+            alert("Error initiating call.");
+            callButton.disabled = false;
+            callButton.innerHTML = "<i class='fas fa-phone'></i> Initiate IVR";
+        });
+}
+
+function pollCallStatus(callSid,case_id, callButton) {
+    // Poll the server for call status
+    const interval = setInterval(() => {
+        fetch(`/call_status?call_sid=${encodeURIComponent(callSid)}&case_id=${encodeURIComponent(case_id)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Call status:", data);
+                if (data.status) {
+                    callButton.innerHTML = `<i class='fas fa-phone'></i> ${data.status}`;
+                }
+
+                // Stop polling if the call is completed or failed
+                if (["completed", "failed", "no-answer", "busy", "canceled"].includes(data.status)) {
+                    clearInterval(interval);
+                    callButton.disabled = false; // Re-enable the button
+                    if (data.status === "completed") {
+                        if (data.is_fullresponse){
+                            callButton.innerHTML = `<i class='fas fa-phone'></i> ${data.status}`;
+                            const refresh = confirm("The call has completed. Do you want to refresh the page for the IVR update?");
+                            if (refresh) {
+                                window.location.href = '/cim'; // Refresh the page
+                            }
+                        }else{
+                            callButton.innerHTML = `<i class='fas fa-phone' style='color: red;'></i> Failed`;
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching call status:", error);
+                clearInterval(interval);
+                callButton.innerHTML = "<i class='fas fa-phone'></i> Error";
+                callButton.disabled = false;
+            });
+    }, 2000); // Poll every 2 seconds
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Notes
+function openDeclineModal() {
+    document.getElementById('declineReasonModal').style.display = 'flex';
+}
+
+function closeDeclineModal() {
+    document.getElementById('declineReasonModal').style.display = 'none';
+}
+
+
+
+
+
+
+
+function toggleCheckboxes() {
+    const actionDropdown = document.getElementById('ActionOnCustomerAcc');
+    const checkboxesDiv = document.getElementById('checkboxesdiv');
+    const label = document.getElementById('checkboxLabel'); // Get the label element
+    const selectedValue = actionDropdown.value;
+    if (selectedValue === 'Alert') {
+        label.textContent = 'Select alert options:';
+    } else if (selectedValue === 'Block') {
+        label.textContent = 'Select block options:';
+    } else {
+        label.textContent = 'Select an option:';
+    }
+    // Show checkboxes if "Alert" or "Block" is selected, otherwise hide
+    if (selectedValue === 'Alert' || selectedValue === 'Block') {
+        checkboxesDiv.style.display = 'flex';
+    } else {
+        checkboxesDiv.style.display = 'none';
+    }
+}
+
+function handleAccountCheckbox() {
+    const accountNoCheckbox = document.getElementById('accountNoCheckbox');
+    const subCheckboxes = document.getElementById('subCheckboxes');
+
+    // Show sub-checkboxes if Account No is checked
+    if (accountNoCheckbox.checked) {
+        subCheckboxes.style.display = 'block';
+    } else {
+        subCheckboxes.style.display = 'none';
+        uncheckSubCheckboxes(); // Uncheck sub-checkboxes if Account No is unchecked
+    }
+}
+
+function handleSubCheckboxes() {
+    const accountNoCheckbox = document.getElementById('accountNoCheckbox');
+    const channelCheckbox = document.getElementById('channelCheckbox');
+    const mccCheckbox = document.getElementById('mccCheckbox');
+
+    // If either Channel or MCC is checked, ensure Account No is also checked
+    if (channelCheckbox.checked || mccCheckbox.checked) {
+        accountNoCheckbox.checked = true;
+        handleAccountCheckbox(); // Ensure sub-checkboxes are visible
+    }
+}
+
+function uncheckSubCheckboxes() {
+    const subCheckboxes = [document.getElementById('channelCheckbox'), document.getElementById('mccCheckbox')];
+    subCheckboxes.forEach(checkbox => {
+        checkbox.checked = false; // Uncheck sub-checkboxes
+    });
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Notes
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Map
+ // Apply color based on the score
+document.querySelectorAll('.Score').forEach(function(element) {
+    const score = parseFloat(element.getAttribute('data-score')); // Get the data-score value
+    const parentInfoBox = element.closest('.infoBox'); // Find the parent .infoBox
+    let iconElement = null;
+    try{
+        iconElement = parentInfoBox.querySelector('.infoboxicon i'); // Find the icon inside the current .infoBox
+    }
+    catch{
+        iconElement = element.querySelector('.Tableicon i');
+    };
+    // Apply color and icon based on the score
+    if (score < 30) {
+        element.classList.add('low-score'); // Score < 50 => Green
+        if (iconElement) {
+            iconElement.className = 'fa fa-times-circle'; // Icon for high risk
+            iconElement.style.color = 'red'; // Red color
+        }
+    } else if (score >= 30 && score <= 70) {
+        element.classList.add('medium-score'); // Score 50-80 => Orange
+        if (iconElement) {
+            iconElement.className = 'fa fa-exclamation-circle'; // Icon for medium risk
+            iconElement.style.color = '#ef750f'; // Orange color
+        }
+    } else {
+        element.classList.add('high-score'); // Score > 80 => Red
+        if (iconElement) {
+            iconElement.className = 'fa fa-check-circle'; // Icon for low risk
+            iconElement.style.color = 'green'; // Green color
+
+        }
+    }
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Graph
+
+
+function createGraphFromData(dataArray, graphDiv) {
+    const data = dataArray[0]; // The transaction data
+    const transactionHour = dataArray[1]; // The transaction hour
+    const label = dataArray[2]; // The label
+    const probability = dataArray[3]; // The probability data
+
+    const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+    // Create a canvas element for the chart
+    const canvas = document.createElement('canvas');
+    canvas.className = 'chartCanvas';
+
+    // Clear previous content
+    graphDiv.innerHTML = '';
+    graphDiv.appendChild(canvas); // Append the canvas to the graphDiv
+
+    const ctx = canvas.getContext('2d');
+
+    const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: label || 'Transaction Volume per Hour', // Fallback label if not provided
+            data: data,
+            backgroundColor: data.map((_, idx) => idx === transactionHour ? 'rgba(255, 99, 132, 0.8)' : 'rgba(0, 128, 255, 0.6)'),
+            borderColor: 'rgba(0, 128, 255, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Hours of the Day'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Transactions'
+                },
+                // Extend y-axis max value
+                suggestedMin: 0, // Minimum value
+                suggestedMax: Math.max(...data) * 1.1 // Extend max value by 10%
+            }
+        },
+        plugins: {
+            annotation: {
+                annotations: [{
+                    type: 'line',
+                    mode: 'vertical',
+                    scaleID: 'x',
+                    value: transactionHour,
+                    borderColor: 'red',
+                    borderWidth: 2,
+                    label: {
+                        enabled: true,
+                        content: 'Current Transaction',
+                        position: 'start',
+                        backgroundColor: 'red',
+                        color: 'white'
+                    }
+                }]
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const value = context.raw;
+                        const prob = probability[context.dataIndex]; // Get corresponding probability
+                        return `Transactions: ${value}, Probability: ${prob}`;
+                    }
+                }
+            },
+                datalabels: {
+                    display: true,
+                    color: 'black',
+                    anchor: 'start', // Position at the start of the bar
+                    align: 'center',
+                    rotation: 90, // Rotate the label 90 degrees to make it vertical
+                    offset:50,
+                    formatter: function(value, context) {
+                        return `P: ${probability[context.dataIndex]}               `; // Display probability
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels] // Include the datalabels plugin
+    });
+}
+
+
+
+
+// Function to fetch data on DOMContentLoaded
+document.addEventListener("DOMContentLoaded", () => {
+    const graphDivs = document.querySelectorAll('.cimGraph'); // Select all graph containers
+
+    graphDivs.forEach(graphDiv => {
+        const graphDataString = graphDiv.innerText; // Fetch data as string
+
+        // Parse the data
+        const dataArray = JSON.parse(graphDataString.replace(/'/g, '"')); // Ensure valid JSON format
+        createGraphFromData(dataArray, graphDiv); // Create the graph with the fetched data
+    });
+});
+
+function toggleGraphSection(sectionPrefix) {
+    if (sectionPrefix) {
+        var graphSection = document.getElementById(sectionPrefix + "-details");
+        var toggleButton = document.getElementById(sectionPrefix + "-toggleButton");
+
+        if (graphSection.style.display === "none") {
+            graphSection.style.display = "block";
+            toggleButton.innerHTML = "-";
+        } else {
+            graphSection.style.display = "none";
+            toggleButton.innerHTML = "+";
+        }
+    } else {
+        // If no specific sectionPrefix is provided, toggle all sections
+        var detailsSections = document.getElementsByClassName("details-section");
+        var toggleButtons = document.querySelectorAll("[id$='-toggleButton']");
+
+        Array.prototype.forEach.call(detailsSections, function(section, index) {
+            if (section.style.display === "none") {
+                section.style.display = "block";
+                toggleButtons[index].innerHTML = "-";
+            } else {
+                section.style.display = "none";
+                toggleButtons[index].innerHTML = "+";
+            }
+        });
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Graph End
+
+//breakpoint
+
+async function openreport() {
+    var content = document.getElementById("Pagebox").cloneNode(true);
+     var scriptTags = content.querySelectorAll("script");
+    scriptTags.forEach(function(scriptTag) {
+        scriptTag.remove();
+    });
+    var dbutton =content.querySelector("#open_button");
+     if (dbutton) {
+      dbutton.remove();
+    }
+    var detailsSections = content.getElementsByClassName("details-section");
+    var toggleButtons = content.querySelectorAll("[id$='-toggleButton']");
+
+    // Ensure all sections are visible and toggle buttons show "-"
+    Array.prototype.forEach.call(detailsSections, function(section, index) {
+        section.style.display = "block";
+        if (toggleButtons[index]) {
+            toggleButtons[index].innerHTML = "-";
+        }
+    });
+
+    try {
+        // Fetch the CSS and JavaScript content
+        const [cssResponse,bootstResponse, jsResponse] = await Promise.all([
+            fetch('/static/vendor/style.css'),
+            fetch('/static/vendor/bs4/bootstrap.min.css'),
+            fetch('/static/vendor/cim.js')  // Replace with the actual script path
+        ]);
+
+        const [cssContent, CSSbootst,jsContent] = await Promise.all([
+            cssResponse.text(),
+            bootstResponse.text(),
+            jsResponse.text()
+        ]);
+        const jsAboveBreakpoint = jsContent.split('//breakpoint')[0].trim();
+        jsAboveBreakpoint
+        // Create the HTML content
+        var htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Report</title>
+                <style>
+                    .container {
+                            position: relative;
+                            max-width: 100% !important;
+                            min-height: 450px;
+                            overflow-y: auto;
+                            background-color: rgba(255, 255, 255, 0.5);
+                            border-radius: 10px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                            backdrop-filter: blur(10px);
+                            -webkit-backdrop-filter: blur(10px);
+                            padding: 15px;
+                        }
+                    ${cssContent}
+                    ${CSSbootst}
+
+
+                </style>
+            </head>
+            <body>
+            <main>
+
+                    ${content.innerHTML}
+
+                <script>
+                    ${jsAboveBreakpoint}
+                </script>
+            </main>
+            </body>
+            </html>`;
+
+        // Create a Blob with the HTML content
+        var blob = new Blob([htmlContent], { type: 'text/html' });
+        var url = URL.createObjectURL(blob);
+
+        // Create a temporary link element
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.html'; // Set the desired file name
+
+        // Append link to the body and trigger a click to start download
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error('Error fetching resources:', error);
+    }
+}
+
+
+var selectedCaseId;
+
+const investigateButtons = document.querySelectorAll(".inv-btn");
+investigateButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+
+        showLoading();
+        const selectedRow = button.closest("tr");
+        selectedCaseId = selectedRow.id.split("-")[1];
+        const form = document.createElement("form");
+        form.action = "/cim/" + selectedRow.id.split("-")[1];
+        form.method = "post";
+        document.body.appendChild(form); // Append form to the body
+        form.submit();
+    });
+});
+
+
+let currentPage = 0;
+function updatePageButtons() {
+    try{
+    const pageButtonsContainer = document.getElementById('page-buttons');
+    pageButtonsContainer.innerHTML = ''; // Clear existing buttons
+
+    const maxVisiblePages = 5; // Number of page buttons visible at a time
+    let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+    // Adjust startPage and endPage if currentPage is near the edges
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(0, endPage - maxVisiblePages + 1);
+    }
+
+    // Create buttons for each visible page
+    for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement('button');
+        button.textContent = i + 1;
+        button.classList.add('pagination-button');
+        button.onclick = function() {
+            currentPage = i;
+            showPage(currentPage);
+        };
+        pageButtonsContainer.appendChild(button);
+    }
+}catch{}
+}
+function showPage(page) {
+    try{
+    updatePageButtons();
+    const pages = document.querySelectorAll('.page');
+    pages.forEach((pageDiv, index) => {
+        pageDiv.style.display = (index === page) ? 'table-row-group' : 'none';
+    });
+    const totalButtons = document.querySelectorAll('#pagination-controls button');
+    totalButtons.forEach((button) => {
+        button.textContent == page + 1 ? button.classList.add('active') : button.classList.remove('active');
+    });
+
+    totalButtons[0].disabled = (page === 0);
+    totalButtons[1].disabled = (page === 0);
+    totalButtons[totalButtons.length - 1].disabled = (page === totalPages - 1);
+    totalButtons[totalButtons.length - 2].disabled = (page === totalPages - 1);
+}catch{}
+}
+
+function goToFirstPage() {
+    currentPage = 0;
+    showPage(currentPage);
+}
+
+function goToLastPage() {
+    currentPage = totalPages - 1;
+    showPage(currentPage);
+}
+
+function nextPage() {
+    if (currentPage < totalPages - 1) {
+        currentPage++;
+        showPage(currentPage);
+    }
+}
+
+function previousPage() {
+    if (currentPage > 0) {
+        currentPage--;
+        showPage(currentPage);
+    }
+}
+
+function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updatePageButtons();
+    showPage(0);
+});
+
+
+function toggleMapSection(sectionPrefix) {
+    if (sectionPrefix) {
+        var graphSection = document.getElementById(sectionPrefix + "-details");
+        var toggleButton = document.getElementById(sectionPrefix + "-toggleButton");
+
+        if (graphSection.style.display === "none") {
+            graphSection.style.display = "block";
+            toggleButton.innerHTML = "-";
+        } else {
+            graphSection.style.display = "none";
+            toggleButton.innerHTML = "+";
+        }
+    } else {
+        // If no specific sectionPrefix is provided, toggle all sections
+        var detailsSections = document.getElementsByClassName("details-section");
+        var toggleButtons = document.querySelectorAll("[id$='-toggleButton']");
+
+        Array.prototype.forEach.call(detailsSections, function(section, index) {
+            if (section.style.display === "none") {
+                section.style.display = "block";
+                toggleButtons[index].innerHTML = "-";
+            } else {
+                section.style.display = "none";
+                toggleButtons[index].innerHTML = "+";
+            }
+        });
+    }
+}
+
+toggleMapSection();
+
+function openModal(buttonId) {
+    // Show the modal (you can also add Bootstrap or jQuery modal show code here if needed)
+    document.getElementById('saveNotesModal').style.display = 'block';
+
+    // Store the button ID in a hidden input
+    document.getElementById('modalIdentifier').value = buttonId;
+
+}
+
+function closeModal() {
+    // Hide the modal (you can also add Bootstrap or jQuery modal hide code here if needed)
+    document.getElementById('saveNotesModal').style.display = 'none';
+        // Close the modal after submission
+    closeDeclineModal();
+}
+function savesaveNotes(selectedCaseId) {
+    var saveNotes = document.getElementById('saveNotesTextarea').value;
+    var buttonId = document.getElementById('modalIdentifier').value;
+
+    // Retrieve other fields
+    var manualReportDecision = document.getElementById('ManualReportDecision').value;
+    var actionDescription = document.getElementById('actionDescriptionTextarea').value;
+    var actionOnCustomer = document.getElementById('ActionOnCustomerAcc').value;
+
+    // Retrieve checkbox values
+    var accountNoCheckbox = document.getElementById('accountNoCheckbox');
+    var channelCheckbox = document.getElementById('channelCheckbox');
+    var mccCheckbox = document.getElementById('mccCheckbox');
+    var beneficiaryCheckbox = document.getElementById('beneficiaryCheckbox');
+
+    if (actionOnCustomer === "Allow") {
+    actiondetails = null;
+    } else {
+        actiondetails = {
+            account: accountNoCheckbox.checked ? accountNoCheckbox.value : null,
+            channel: channelCheckbox.checked ? channelCheckbox.value : null,
+            mcc: mccCheckbox.checked ? mccCheckbox.value : null,
+            beneficiary: beneficiaryCheckbox.checked ? beneficiaryCheckbox.value : null
+        };
+    }
+
+    // Prepare the payload with all values
+    var payload = JSON.stringify({
+        note: saveNotes,
+        buttonId: buttonId,
+        decision: manualReportDecision,
+        actionDescription: actionDescription,
+        actionOnCustomer: actionOnCustomer,
+        checkboxes: actiondetails
+    });
+
+    fetch('/cim/save-note/' + selectedCaseId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: payload
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            alert("Note saved successfully!");
+            closeModal();
+        } else {
+            alert("Failed to save note: " + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred while saving the note.");
+    });
+}
+
+
+        // Initialize the icon on page load
+//document.addEventListener('DOMContentLoaded', function() {
+//    var saveNotes = document.getElementById('saveNotesInput').value;
+//    updatesaveNotesIcon(saveNotes);
+//});
+
+// Close the modal when the user clicks outside of it
+window.onclick = function(event) {
+    var modal = document.getElementById('saveNotesModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openShowsaveNotesModal(ruleId) {
+    var saveNotesElement = document.querySelector(`#saveNotes-preview-${ruleId}`);
+    var saveNotes = saveNotesElement.getAttribute('value');
+    console.log( saveNotes)
+    document.getElementById('fullsaveNotes').innerText = saveNotes;
+    document.getElementById('show-saveNotesModal').style.display = 'block';
+}
+
+function closeShowsaveNotesModal() {
+    document.getElementById('show-saveNotesModal').style.display = 'none';
+}
+function edit_openModal(ruleIdbutton) {
+    var saveNotesElement = document.querySelector(`#edit-saveNotesInput-${ruleIdbutton}`);
+    var saveNotes = saveNotesElement.getAttribute('value');
+    document.getElementById('edit-saveNotesTextarea').value = saveNotes;
+     var buttonContainer = document.querySelector('#edit-saveNotesModal .modal-content div');
+        // Check if the button already exists
+        var existingButton = buttonContainer.querySelector('.btn.btn-primary');
+        if (existingButton) {
+            // Update the onclick handler if the button exists
+            existingButton.onclick = function() { UpdatesaveNotes(ruleIdbutton); };
+        }
+
+
+    document.getElementById('edit-saveNotesModal').style.display = 'block';
+}
+function edit_closeModal() {
+    document.getElementById('edit-saveNotesModal').style.display = 'none';
+}
+function UpdatesaveNotes(selectedCaseId,actiontake) {
+    var saveNotes = document.getElementById('saveNotesTextarea').value;
+    var buttonId = document.getElementById('modalIdentifier').value;
+
+    // Retrieve other fields
+    var declinedreason=document.getElementById('declineReasonInput').value;
+    var manualReportDecision = document.getElementById('ManualReportDecision').value;
+    var actionDescription = document.getElementById('actionDescriptionTextarea').value;
+    var actionOnCustomer = document.getElementById('ActionOnCustomerAcc').value;
+      // Retrieve checkbox values
+    var accountNoCheckbox = document.getElementById('accountNoCheckbox');
+    var channelCheckbox = document.getElementById('channelCheckbox');
+    var mccCheckbox = document.getElementById('mccCheckbox');
+    var beneficiaryCheckbox = document.getElementById('beneficiaryCheckbox');
+    let actiondetails;
+    if (actionOnCustomer === "Allow") {
+    actiondetails = null;
+    } else {
+        actiondetails = {
+            account: accountNoCheckbox.checked ? accountNoCheckbox.value : null,
+            channel: channelCheckbox.checked ? channelCheckbox.value : null,
+            mcc: mccCheckbox.checked ? mccCheckbox.value : null,
+            beneficiary: beneficiaryCheckbox.checked ? beneficiaryCheckbox.value : null
+        };
+    }
+
+
+    // Prepare the payload with all values
+    var payload = JSON.stringify({
+        note: saveNotes,
+        buttonId: buttonId,
+        decision: manualReportDecision,
+        actionDescription: actionDescription,
+        actionOnCustomer: actionOnCustomer,
+        checkboxes: actiondetails,
+        appaction:actiontake,
+        declinereason:declinedreason
+
+    });
+
+    fetch('/cim/update-note/' + selectedCaseId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: payload
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok');
+        }
+    })
+    .then(data => {
+        if (data.success) {
+            alert("Note updated successfully!");
+            closeModal();
+        } else {
+            alert("Failed to update note: " + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred while updating the note.");
+    });
+}
+
+
+
+    function selectLocation(index, row) {
+        // Remove the highlight from any previously selected row
+        var previouslySelected = document.querySelector('.selected-row');
+        if (previouslySelected) {
+            previouslySelected.classList.remove('selected-row');
+        }
+
+        // Highlight the currently selected row
+        row.classList.add('selected-row');
+
+        // Extract the location from the selected row
+        var loc = row.querySelector('.loc-column').textContent;
+
+        // Update the map with the location
+        updateMapWithLocation(loc);
+
+        // Add blinking effect to the map location
+        addBlinkingEffect(loc);
+
+        // Submit the form with the selected index
+        document.getElementById('selected-index').value = index;
+    }
+
+    function updateMapWithLocation(loc) {
+        // Implement your logic to update the map with the given location
+        console.log('Updating map with location:', loc);
+
+        // Example: If you are using Folium or a similar library, you need to integrate it here
+        // This is just a placeholder
+    }
+
+    function addBlinkingEffect(loc) {
+        // Example function to add a blinking effect on the map location
+        var mapDetails = document.getElementById('map-details');
+
+        // Ensure there's an element to blink or create one
+        var blinkElement = document.createElement('div');
+        blinkElement.className = 'blink-effect';
+        blinkElement.textContent = `Location: ${loc}`;
+        mapDetails.appendChild(blinkElement);
+
+        // Remove the blink effect after a few seconds
+        setTimeout(() => {
+            blinkElement.remove();
+        }, 5000); // Remove after 5 seconds
+    }
+
+
+
+let loadingInterval;
+
+function showLoading() {
+    sessionStorage.setItem('loading', 'true');
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    document.getElementById('loadingText').textContent = 'Loading...'; // Set the initial message
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+    let messages = ['Fetching Information...', 'Analyzing Data...', 'Generating Report...'];
+    let currentMessageIndex = 0;
+
+    // Start the interval to loop through the messages every 2 seconds
+    loadingInterval = setInterval(function() {
+        document.getElementById('loadingText').textContent = messages[currentMessageIndex];
+        currentMessageIndex = (currentMessageIndex + 1) % messages.length; // Cycle through the messages
+    }, 2000);
+}
+
+function hideLoading() {
+    try{
+    clearInterval(loadingInterval); // Stop the message loop
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.body.style.overflow = ''; // Restore scrolling
+}catch{}
+}
+window.addEventListener('load', function () {
+    if (sessionStorage.getItem('loading')) {
+        hideLoading(); // Ensure loading overlay is hidden on page load if the loading state is set
+        sessionStorage.removeItem('loading'); // Clear loading state
+    }
+});
+
+

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Tracking{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/style.css') }}">
+<div class="Pagecontent" id="PagecontentID">
+    <div id="Pagebox" class="content box">
+        <div class="container" id="container">
+            <div class="dataTables_wrapper no-footer" id="advancedTable_wrapper">
+                <div class="table-container" id="advancedTable">
+                    <table border="1">
+                        <thead>
+                            <tr>
+                                <th>Route ID</th>
+                                <th>Job No</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable">
+                            <tr>
+
+                            </tr>
+                            <tr>
+
+                            </tr>
+                            <tr>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='image/vendor/script.js') }}"></script>
+{% endblock %}

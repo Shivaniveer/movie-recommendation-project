@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Movie{% endblock %}</title>
+     <link rel="icon" type="image/x-icon" href="imgs/favicon.png">
+    <link rel="stylesheet" href="./chatbot-ui.css">
+    <link href="{{ url_for('static', filename='favicon.ico') }}" rel="icon" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/bs4/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/chatbot-ui.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/map.css') }}" />
+
+    <link rel="icon" type="image/x-icon" href="imgs/favicon.png">
+    <script type="text/javascript" src="{{ url_for('static', filename='vendor/externaljs/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='vendor/bs4/bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/externalcss/remixicon.css') }}" />
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/externalcss/fontawesome/all.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/externalcss/Poppins.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/externalcss/fontawesome/allmin651.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/externalcss/leaflet.css') }}">
+    <script src="{{ url_for('static', filename='vendor/externaljs/plotly-latest.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/exporting.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/export-data.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/accessibility.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/xlsx.full.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/libphonenumber-js.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/chartjs-plugin-annotation@1.0.2') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/chartjs-plugin-datalabels.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/externaljs/jquery.dataTables.min.js') }}"></script>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='vendor/externaljs/vis-network.min.js') }}"></script>
+    <script>
+        function applyThemeFromStorage() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+
+            if (savedTheme) {
+                document.documentElement.classList.add(savedTheme);
+            } else {
+                document.documentElement.classList.add('defaulttheme');
+            }
+        }
+
+        // Apply the theme from localStorage when the page loads
+        applyThemeFromStorage();
+    </script>
+</head>
+<body>
+    <div class="navbar-container">
+        <div class="bank-logo-container" style="left:17%; margin-top: 1vw; margin-left: 5vw;">
+            <a href="https://engg.sreir.org"><img src="{{ url_for('static', filename='vendor/media/shivani.png') }}" alt="MaximusImage" class="navbar-img" id="ubank-logo" style="display: flex;" ></a>
+        </div>
+
+        <ul class="navbar">
+            <li class="item" name="Theme Selector">
+                <a class="navbar-a">
+                    <i class="fas fa-palette fa-lg"></i></a>
+                <ul class="submenu">
+                    <li class="item active" name="Default Theme"><a href="#" class="navbar-a theme-option" data-theme="default">
+                        <i class="fas fa-paint-brush " style="margin-right: 10px;"></i> Default Theme</a></li>
+                    <li class="item" name="Light Theme"><a href="#" class="navbar-a theme-option" data-theme="lighttheme">
+                        <i class="fas fa-sun" style="margin-right: 10px;"></i> Light Theme</a></li>
+                    <li class="item" name="Standard Theme"><a href="#" class="navbar-a theme-option" data-theme="standardtheme">
+                        <i class="fa-solid fa-layer-group" style="margin-right: 10px;"></i> Standard Theme</a></li>
+                </ul>
+            </li>
+
+            <li class="item" name="Alerts">
+                <a class="navbar-a" href="/alerts"  style="display: flex; align-items: center;">
+                    <div id="alert-icon">
+                        <div class="bell">
+                            <i class="fas fa-bell" style="color: #141E46;"></i>
+                            <div id="alert-count" ></div>
+                        </div>
+                    </div>
+                </a>
+            </li>
+
+            <li class="item" name="Logout">
+                <div class="bottom-content">
+                    <div class="user-data">
+                        <span class="user-name">{{ userdetails.UserName }}</span>
+                        <span class="user-status">{{ userdetails.Role }}</span>
+                    </div>
+                    <div class="user-image">
+                        <div class="user-avatar-container">
+                            <div class="user-avatar" id="user-avatar" onclick="toggleUserMenu()">
+                                <div class="front">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="back">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <!-- Hidden Submenu -->
+                            <ul class="submenu" id="user-submenu" style="display: none;idth: 180px; margin-left: -125px;">
+                                <li class="item" name="Logout">
+                                    <a href="/signout" class="navbar-a" onclick="handleSignOut(event)">
+                                        <i class="fas fa-sign-out" style="font-size: 1.23vw; margin-right:10px;"></i>Sign Out
+                                    </a>
+                                </li>
+                                <li class="item" name="Logout">
+                                    <a href="javascript:void(0);" id="resetPasswordLink" class="navbar-a" onclick="toggleResetPassword()">
+                                        <i class="fas fa-key" style="font-size: 1.23vw; margin-right:10px;"></i>Reset Password
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <div class="maximus-logo-container" style=" margin-right: 0.2vw;">
+                <a href="https://engg.sreir.org/"><img src="{{ url_for('static', filename='vendor/media/shivani.png') }}" alt="MaximusImage" class="navbar-img" id="bank-logo" style="display: flex;" ></a>
+            </div>
+        </ul>
+    </div>
+
+<div id="chat-container"></div>
+<script>
+    createChatBot({
+        host: 'http://localhost:5005/webhooks/rest/webhook',
+        botLogo: "app/templates/Images/bot-logo.png",
+        title: "ZAPPY",
+        welcomeMessage: "Hi 👋 I am Zappy!",
+        inactiveMsg: "Sorry, I am unable to answer your question.",
+        theme: "purple"
+    });
+</script>
+
+
+    <!-- side bar start -->
+    <nav class="sidebar close closing">
+        <header>
+            <div class="logo-text hideElement">
+                <img src="{{ url_for('static', filename='vendor/media/shivani.png') }}" alt="logo" class="navbar-img-sidebar ">
+            </div>
+            <img class="menu-toggle" src="{{ url_for('static', filename='vendor/media/menu.svg') }}" alt="menu">
+        </header>
+
+        <div class="menud">
+            <ul class="links-list" style="list-style-type: none; padding-left: 0;">
+                <li class="Home-link" name="Dashboards">
+                    <a class="mainnav" href="#">
+                        <i class="fas fa-home" style="font-size: 1.5vw;"></i>
+                        <span class="link-text">Dashboards</span>
+                        <img class="dropdown-icon" src="{{ url_for('static', filename='vendor/media/dropdown.svg') }}" alt="dropdown">
+                    </a>
+                <ul class="sublinks-list hideElement">
+                    <li class="item"><a href="/recomendation" class="navbar-a">
+                        <i class="fas fa-magic"></i> Recommendations</a>
+                    </li>
+                    <li class="item"><a href="/reco_date" class="navbar-a">
+                        <i class="fas fa-calendar-alt"></i> Year-wise Movie</a>
+                     <li class="item">
+                        <a href="/reco_country" class="navbar-a">
+                            <i class="fas fa-globe-americas"></i> Country-wise Movies
+                        </a>
+                    </li>
+                </ul>
+
+                </li>
+                <li class="ATMTrackingSystem-link" name="Movie Recomendation About">
+                    <a class="mainnav" href="#">
+                        <i class="fas fa-film" style="font-size: 1.5vw;"></i>
+                        <span class="link-text"> Recomendation About</span>
+                        <img class="dropdown-icon" src="{{ url_for('static', filename='vendor/media/dropdown.svg') }}" alt="dropdown">
+                    </a>
+                    <ul class="sublinks-list hideElement">
+                        <li class="item" name="Route Tracking"><a href="/info" class="navbar-a">
+                          <i class="fas fa-info" style="margin-right: 10px;"></i>Info</a></li>
+                    </ul>
+                </li>
+                <li class="RulesConfiguration-link" name="Rules Configuration">
+                    <a class="mainnav" href="#">
+                        <i class="fas fa-search" style="font-size: 1.5vw;"></i>
+                        <span class="link-text">Youtube Search</span>
+                    </a>
+                    <ul class="sublinks-list hideElement">
+                        <li class="item" name="Route Tracking">
+                            <a href="/youtubess" class="navbar-a">
+                                <i class="fab fa-youtube" style="margin-right: 10px;"></i> Youtube Search
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <br><br><br>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; <span id="currentYear"></span>Samarth College of Engineering and Management .</p>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const activeTabs = {{ userdetails.ActiveTabs | safe }};
+        const rawAllowedUrls = {{ userdetails.ActiveTabsURLs | safe }};
+
+        function handleSignOut(event) {
+            event.preventDefault();
+            sessionStorage.clear();
+            window.location.href = '/signout';
+        }
+
+        if (sessionStorage.getItem('isLoggedIn') === null) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+        }
+
+        console.log(sessionStorage.getItem('isLoggedIn'));
+
+        function showToast(type, title, message, icon, formAction, methoduse,alertId,objId='') {
+            const types = {
+                info: 'info',
+                error: 'error',
+                warning: 'warning'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${types[type] || ''}`;
+            if (objId!=''){
+                formAction=formAction+'#rule-'+objId
+            }
+
+            toast.innerHTML = `
+                <i class="icon ${icon}" style="font-size: 2vw;"></i>
+                <form action="${formAction}" method="${methoduse}">
+                    <input type="hidden" name="action" value="alertredirect">
+                    <input type="hidden" name="objid" value="${objId}">
+                    <input type="hidden" name="altid" value="${alertId}">
+                    <div class="content_1" style="cursor: pointer;">
+                        <div class="title">${title}</div>
+                        <span>${message}</span>
+                    </div>
+                </form>
+                <i class="close-icon" onclick="this.parentElement.parentElement.remove()" style="font-size: 2vw; cursor: pointer;">×</i>
+            `;
+
+            const container = document.getElementById('toast-container');
+            container.appendChild(toast);
+            toast.style.opacity = 1;
+
+            toast.querySelector('.content_1').addEventListener('click', function () {
+                this.closest('form').submit();
+            });
+
+            setTimeout(() => {
+                toast.remove();
+            }, 10000);
+        }
+
+        let alerttype={
+            info: ['info','fas fa-info-circle'],
+            error: ['error','fas fa-exclamation-triangle'],
+            warning: ['warning','fas fa-info-circle'],
+           Rule_Approved:['success','fas fa-check'],
+           Rule_Addition:['info','fas fa-info-circle'],
+           Rule_Resent:['info','fas fa-info-circle'],
+           Rule_Alert:['warning','fas fa-exclamation-circle'],
+           Rule_Declined:['error','fas fa-exclamation-triangle'],
+           Rule_Updated: ['success','fas fa-edit'],
+           Rule_enabled: ['success','fas fa-check'],
+           Rule_disabled: ['error','fas fa-times']
+        };
+
+        let initialLoad = true;
+        let lastid= '';
+
+</script>
+    <script src="{{ url_for('static', filename='vendor/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/map.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/chatbot-ui.js') }}"></script>
+    <script src="./chatbot-ui.js"></script>
+    <script>
+
+        createChatBot(host = 'http://localhost:5005/webhooks/rest/webhook', botLogo = "static/Images/bot-logo.png",
+            title = "Shivdya", welcomeMessage = "Hi 👋 I am Shivadya!" , inactiveMsg = "Sorry, I am unable to answer your question.", theme = "purple")
+    </script>
+</body>
+</html>

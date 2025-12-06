@@ -1,0 +1,137 @@
+const inputs = document.querySelectorAll(".input");
+function addcl(){
+	let parent = this.parentNode.parentNode;
+	parent.classList.add("focus");
+}
+
+function remcl(){
+	let parent = this.parentNode.parentNode;
+	if(this.value == ""){
+		parent.classList.remove("focus");
+	}
+}
+inputs.forEach(input => {
+	input.addEventListener("focus", addcl);
+	input.addEventListener("blur", remcl);
+});
+function toggleContent() {
+    var content = document.getElementById("filter");
+    if (content.style.display === "none") {
+      content.style.display = "block";
+    } else {
+      content.style.display = "none";
+    }
+  }
+
+
+
+
+
+//navbar active link
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current path or URL
+    var currentPath = decodeURIComponent(window.location.pathname);
+
+    // Get all navbar items
+    var navbarItems = document.querySelectorAll('.sidebar .item');
+    var pageheader = document.querySelector('.pageheader');
+
+    navbarItems.forEach(function(item) {
+        var link = item.querySelector('.navbar-a');
+        var href = link ? link.getAttribute('href') : '';
+
+        var spanElement = item.querySelector('.link-text');
+        if (spanElement) {
+            var spanText = spanElement.innerHTML.trim();
+        } else {
+            var spanText = link && link.innerHTML.includes('</i>') ? link.innerHTML.split('</i>')[1].trim() : '';
+
+        }
+
+        // Add 'active' class to the current navbar item based on conditions
+        if (currentPath.startsWith(href)) {
+            item.classList.add('active');
+//            pageheader.innerHTML = spanText;
+
+            // Find the closest parent item and add a class if it has a .navbar-a
+            var parentItem = item.closest('.sublinks-list');
+            if (parentItem) {
+                var parentItem1 = parentItem.closest('[class*="-link"]');
+                var abdItem = parentItem1 ? parentItem1.querySelector('a') : null;
+
+                if (abdItem) {
+                    abdItem.classList.add('active');
+                }
+            }
+        }
+    });
+});
+
+
+
+
+//    // Get all navbar items
+//    const navItems = document.querySelectorAll('.sidebar .item, .sidebar [class*="-link"]');
+//
+//    navItems.forEach(item => {
+//        // Get the name of the item
+//        const tabName = item.getAttribute('Name');
+//
+//        // Check if the tab name is in the list of active tabs
+//        if (!activeTabs.includes(tabName)  && tabName !== "Logout") {
+//            // Check if the 'li' has an 'a' tag
+//            const link = item.querySelector('a');
+//            if (link) {
+//                // If it has an 'a' tag, remove the entire 'li' element
+//                item.remove();
+//            }
+//        }
+//    });
+
+
+//      const allowedUrls = rawAllowedUrls.map(url => decodeURIComponent(url));
+//
+//        const currentUrl = decodeURIComponent(window.location.pathname);  // Decode the current URL path
+//
+//    // Determine if any allowed URL permits access to the current URL
+//    const isAllowedUrl = allowedUrls.some(allowedUrl => {
+//        // Trim the trailing slash if it exists
+//        const trimmedAllowedUrl = allowedUrl.endsWith('/') ? allowedUrl.slice(0, -1) : allowedUrl;
+//
+//        // Check if the current URL matches the trimmed allowed URL or starts with it
+//        if (allowedUrl.endsWith('/')) {
+//            return currentUrl.startsWith(trimmedAllowedUrl); // Allow any sub-paths
+//        } else {
+//            return currentUrl === allowedUrl; // Only allow the exact match
+//        }
+//    });
+//
+//    if (!isAllowedUrl) {
+//        // Redirect to the previous page if the current URL is not allowed
+//        const previousUrl = document.referrer; // Get the previous page URL
+//
+//        alert(previouUrl)
+//        if (previousUrl) {
+//            alert("You are not allowed to access this page");
+//            // If there is a previous URL, redirect to it
+//            window.location.href = previousUrl;
+//        } else {
+//            // If there is no previous URL, redirect to a default page (optional)
+//            window.location.href = '/Home'; // Change to your desired default page
+//        }
+//    }
+//
+
+
+
+
+
+
+// active link end
+
+// rules html 
+
+//rules end
+
+
+
